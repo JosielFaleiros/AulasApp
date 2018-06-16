@@ -29,6 +29,9 @@ public class ClassActivity extends AppCompatActivity {
     private Dao<Discipline, Integer> disciplineDao;
     private List<Discipline> disciplineList;
     Button btnSave;
+    private EditText etName;
+    private int modo;
+    private Discipline discipline;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,9 +39,12 @@ public class ClassActivity extends AppCompatActivity {
         setContentView(R.layout.activity_class);
 
         ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null){
+        if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
+
+        etName = findViewById(R.id.etDisciplineName);
+
         TextView tvNoSchedule = findViewById(R.id.tvNoSchedule);
         try {
             disciplineDao = DatabaseHelper.getInstance(this).getDisciplineDao();
@@ -50,31 +56,40 @@ public class ClassActivity extends AppCompatActivity {
             tvNoSchedule.setVisibility(View.GONE);
         }
 
-        Integer modo = getIntent().getIntExtra(MODO, NEW);
+        modo = getIntent().getIntExtra(MODO, NEW);
 
         if (modo == ALTER) {
             int id = getIntent().getIntExtra(ID, -1);
             if (id > 0) {
-                Discipline discipline;
                 try {
                     discipline = disciplineDao.queryForId(id);
+                    populateView(discipline);
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
 //                populateView(discipline);
             }
         }
+
         btnSave = findViewById(R.id.btnSave);
         btnSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Discipline discipline = getdataFromView();
                 try {
+                    getdataFromView();
+
                     if (!validInputs()) {
                         Toast.makeText(ClassActivity.this, "Insira um nome", Toast.LENGTH_SHORT).show();
                         throw new Exception("Invalid input");
                     }
-                    disciplineDao.create(discipline);
+
+
+                    if (modo == ALTER) {
+                        disciplineDao.update(discipline);
+                    } else {
+                        disciplineDao.create(discipline);
+                    }
+
                     Toast.makeText(ClassActivity.this, "Salvo com sucesso!", Toast.LENGTH_SHORT).show();
                     setResult(Activity.RESULT_OK);
                     finish();
@@ -88,7 +103,6 @@ public class ClassActivity extends AppCompatActivity {
     }
 
     private boolean validInputs() {
-        EditText etName = findViewById(R.id.etDisciplineName);
         if (!etName.getText().toString().trim().isEmpty()) {
             return true;
         }
@@ -97,11 +111,11 @@ public class ClassActivity extends AppCompatActivity {
     }
 
     public void populateView(Discipline discipline) {
-
+        etName.setText(discipline.getName());
     }
 
 
-    public static void alter(Activity activity, Discipline discipline){
+    public static void alter(Activity activity, Discipline discipline) {
 
         Intent intent = new Intent((Context) activity, ClassActivity.class);
 
@@ -121,7 +135,9 @@ public class ClassActivity extends AppCompatActivity {
     }
 
     public Discipline getdataFromView() {
-        EditText etName = findViewById(R.id.etDisciplineName);
-        return new Discipline().setName( String.valueOf(etName.getText()));
+        if (discipline == null)
+            return new Discipline().setName( String.valueOf(etName.getText()));
+        else
+            return discipline.setName(String.valueOf(etName.getText()));
     }
 }
