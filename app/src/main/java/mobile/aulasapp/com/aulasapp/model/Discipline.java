@@ -5,8 +5,10 @@ import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.field.ForeignCollectionField;
 import com.j256.ormlite.table.DatabaseTable;
 
+import java.io.Serializable;
+
 @DatabaseTable(tableName = "CLASS")
-public class Discipline {
+public class Discipline implements Serializable {
     @DatabaseField(generatedId = true, columnName = "IDDISCIPLINE")
     int id;
     @DatabaseField(columnName = "NAME")
@@ -51,7 +53,14 @@ public class Discipline {
         return name;
     }
 
-    public void setName(String name) {
+    public Discipline setName(String name) {
         this.name = name;
+        return this;
+    }
+
+    @Override
+    public String toString() {
+        return "Aula " +
+                "nome: " + name;
     }
 }
