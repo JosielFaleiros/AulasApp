@@ -60,7 +60,6 @@ public class Discipline implements Serializable {
 
     @Override
     public String toString() {
-        return "Aula " +
-                "nome: " + name;
+        return name;
     }
 }

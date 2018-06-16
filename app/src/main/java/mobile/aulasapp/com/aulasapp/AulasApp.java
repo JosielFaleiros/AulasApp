@@ -11,12 +11,14 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.j256.ormlite.dao.Dao;
 
@@ -32,7 +34,9 @@ public class AulasApp extends AppCompatActivity
     private static final int REQUEST_NEW_DISCIPLINE = 1;
     private static final int REQUEST_EDIT_DISCIPLINE = 2;
     private ListView lvDisciplines;
-    private ArrayAdapter<Discipline> listaAdapter;
+    private ArrayAdapter<Discipline> disciplineListAdapter;
+    private List<Discipline> disciplineList;
+    private Dao<Discipline, Integer> disciplineDao;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,18 +55,48 @@ public class AulasApp extends AppCompatActivity
             }
         });
 
+        registerForContextMenu(lvDisciplines);
+
         popularLista();
 
     }
 
-    private void popularLista() {
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+        getMenuInflater().inflate(R.menu.item_selected, menu);
+    }
 
-        List<Discipline> lista = null;
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+        Discipline discipline = disciplineList.get(info.position);
+        if (item.getItemId() == R.id.itemDeleteCtx) {
+            deleteDiscipline(discipline);
+            return true;
+        } else {
+            return super.onContextItemSelected(item);
+        }
+    }
+
+    private void deleteDiscipline(Discipline discipline) {
+        try {
+            int result = disciplineDao.delete(discipline);
+            if (result <= 0) throw new SQLException();
+            else Toast.makeText(this, "Aula apagada com sucesso!", Toast.LENGTH_SHORT).show();
+            popularLista();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Erro, Tente novamente", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void popularLista() {
 
         try {
             DatabaseHelper conexao = DatabaseHelper.getInstance(this);
-
-            lista = conexao.getDisciplineDao()
+            disciplineDao = conexao.getDisciplineDao();
+            disciplineList = disciplineDao
                     .queryBuilder()
                     .orderBy("NAME", true)
                     .query();
@@ -71,11 +105,11 @@ public class AulasApp extends AppCompatActivity
             return;
         }
 
-        listaAdapter = new ArrayAdapter<Discipline>(this,
+        disciplineListAdapter = new ArrayAdapter<Discipline>(this,
                 android.R.layout.simple_list_item_1,
-                lista);
+                disciplineList);
 
-        lvDisciplines.setAdapter(listaAdapter);
+        lvDisciplines.setAdapter(disciplineListAdapter);
     }
 
     @Override

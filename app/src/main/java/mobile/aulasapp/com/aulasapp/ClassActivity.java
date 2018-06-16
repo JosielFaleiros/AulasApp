@@ -134,10 +134,10 @@ public class ClassActivity extends AppCompatActivity {
         activity.startActivityForResult(intent, NEW);
     }
 
-    public Discipline getdataFromView() {
+    public void getdataFromView() {
         if (discipline == null)
-            return new Discipline().setName( String.valueOf(etName.getText()));
+            discipline = new Discipline().setName( String.valueOf(etName.getText()).trim());
         else
-            return discipline.setName(String.valueOf(etName.getText()));
+            discipline.setName(String.valueOf(etName.getText()).trim());
     }
 }
