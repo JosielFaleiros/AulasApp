@@ -58,7 +58,7 @@
             android:layout_marginLeft="76dp"
             android:layout_marginStart="76dp"
             android:layout_marginTop="32dp"
-            android:text="Horarios:"
+            android:text="Horários:"
             android:textColor="@android:color/black"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/linearLayout" />
@@ -80,18 +80,19 @@
             android:id="@+id/tvNoSchedule"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Nenhum horario ainda"
-            tools:layout_editor_absoluteX="116dp"
-            tools:layout_editor_absoluteY="227dp" />
+            android:text="Nenhum horário ainda"
+            app:layout_constraintTop_toBottomOf="@+id/tvSchedules"
+            tools:layout_editor_absoluteX="116dp" />
 
 
         <ListView
-            android:id="@+id/listViewContatos"
+            android:id="@+id/lv_schedules"
             android:layout_width="0dp"
             android:layout_height="250dp"
             android:layout_marginEnd="8dp"
             android:layout_marginRight="8dp"
             android:layout_marginTop="40dp"
+            android:background="#faf5ef"
             android:minHeight="300dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -108,7 +109,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/listViewContatos">
+            app:layout_constraintTop_toBottomOf="@+id/lv_schedules">
 
             <Button
                 android:id="@+id/btnSave"

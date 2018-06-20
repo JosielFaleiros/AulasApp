@@ -17,7 +17,7 @@ import mobile.aulasapp.com.aulasapp.model.Schedule;
 
 public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
     private static final String DB_NAME    = "aulasapp.db";
-    private static final int    DB_VERSION = 1;
+    private static final int    DB_VERSION = 2;
 
     private static DatabaseHelper instance;
 
