@@ -2,12 +2,14 @@ package mobile.aulasapp.com.aulasapp;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -26,6 +28,7 @@ import java.sql.SQLException;
 import java.util.List;
 
 import mobile.aulasapp.com.aulasapp.model.Discipline;
+import mobile.aulasapp.com.aulasapp.model.Schedule;
 import mobile.aulasapp.com.aulasapp.model.persistence.DatabaseHelper;
 
 public class AulasApp extends AppCompatActivity
@@ -72,11 +75,32 @@ public class AulasApp extends AppCompatActivity
         AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
         Discipline discipline = disciplineList.get(info.position);
         if (item.getItemId() == R.id.itemDeleteCtx) {
-            deleteDiscipline(discipline);
+            alertWillDelete(discipline);
             return true;
         } else {
             return super.onContextItemSelected(item);
         }
+    }
+
+
+    private void alertWillDelete(final Discipline discipline) {
+        DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                switch (which){
+                    case DialogInterface.BUTTON_POSITIVE:
+                        deleteDiscipline(discipline);
+                        break;
+
+                    case DialogInterface.BUTTON_NEGATIVE:
+                        //Do your No progress
+                        break;
+                }
+            }
+        };
+        AlertDialog.Builder ab = new AlertDialog.Builder(this);
+        ab.setMessage("Você tem certeza que deseja deletar?").setPositiveButton("Sim", dialogClickListener)
+                .setNegativeButton("Não", dialogClickListener).show();
     }
 
     private void deleteDiscipline(Discipline discipline) {
