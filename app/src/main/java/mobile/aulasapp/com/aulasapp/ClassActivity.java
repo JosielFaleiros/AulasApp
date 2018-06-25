@@ -9,7 +9,9 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -84,6 +86,16 @@ public class ClassActivity extends AppCompatActivity {
 
         modo = getIntent().getIntExtra(MODO, NEW);
 
+        lvSchedules.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                schedule = schedulesList.get(position);
+                startScheduleDialog(schedule);
+            }
+        });
+
+        registerForContextMenu(lvSchedules);
+
         if (modo == ALTER) {
             int id = getIntent().getIntExtra(ID, -1);
             if (id > 0) {
@@ -136,12 +148,74 @@ public class ClassActivity extends AppCompatActivity {
         btnNewSchedule.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startScheduleDialog();
+                startScheduleDialog(
+                        prepareNewSchedule()
+                );
             }
         });
     }
 
-    private void startScheduleDialog() {
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+        getMenuInflater().inflate(R.menu.item_selected, menu);
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+        Schedule schedule = schedulesList.get(info.position);
+        if (item.getItemId() == R.id.itemDeleteCtx) {
+            alertWillDelete(schedule);
+            return true;
+        } else {
+            return super.onContextItemSelected(item);
+        }
+    }
+
+    private void alertWillDelete(final Schedule schedule) {
+        DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                switch (which){
+                    case DialogInterface.BUTTON_POSITIVE:
+                        deleteSchedule(schedule);
+                        break;
+
+                    case DialogInterface.BUTTON_NEGATIVE:
+                        //Do your No progress
+                        break;
+                }
+            }
+        };
+        AlertDialog.Builder ab = new AlertDialog.Builder(this);
+        ab.setMessage("Você tem certeza que deseja deletar?").setPositiveButton("Sim", dialogClickListener)
+                .setNegativeButton("Não", dialogClickListener).show();
+    }
+
+    private void deleteSchedule(Schedule discipline) {
+        try {
+            int result = schedulesDao.delete(discipline);
+            if (result <= 0) throw new SQLException();
+            else Toast.makeText(this, "Horário apagado com sucesso!", Toast.LENGTH_SHORT).show();
+            populateSchedules();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Erro, Tente novamente", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private Schedule prepareNewSchedule() {
+        if (schedule == null) schedule = new Schedule();
+        schedule.setStartHour(6);
+        schedule.setFinishHour(7);
+        schedule.setDay(1);
+        schedule.setStartMinute(0);
+        schedule.setFinishMinute(0);
+        return schedule;
+    }
+
+    private void startScheduleDialog(final Schedule schedule) {
         if (builder == null) builder = new AlertDialog.Builder(this);
         // Get the layout inflater
         if (inflater == null) inflater = (this).getLayoutInflater();
@@ -151,9 +225,6 @@ public class ClassActivity extends AppCompatActivity {
         View alertLayout = inflater.inflate(R.layout.schedule_creation_alert, null);
         dynamicSpinner = alertLayout.findViewById(R.id.dynamic_spinner);
 
-        if (schedule == null) schedule = new Schedule();
-        schedule.setStartHour(-1);
-        schedule.setFinishHour(-1);
         builder.setTitle("Horário");
         builder.setCancelable(false);
 //        builder.setIcon(R.drawable.galleryalart);
@@ -175,7 +246,15 @@ public class ClassActivity extends AppCompatActivity {
                             Toast.makeText(ClassActivity.this, "Informe data inicio e fim!", Toast.LENGTH_SHORT).show();
                         } else {
                             schedule.setDay(dynamicSpinner.getSelectedItemPosition());
-                            discipline.getSchedules().add(schedule);
+                            if (schedule.getId() != 0) {
+                                try {
+                                    schedulesDao.update(schedule);
+                                } catch (SQLException e) {
+                                    e.printStackTrace();
+                                }
+                            } else {
+                                discipline.getSchedules().add(schedule);
+                            }
                             populateSchedules();
                         }
                     }
@@ -191,18 +270,18 @@ public class ClassActivity extends AppCompatActivity {
         Button btnFinishDate = alertDialog.findViewById(R.id.btnFinishDate);
         final TextView tvStart = alertDialog.findViewById(R.id.tvStartDate);
         final TextView tvFinish = alertDialog.findViewById(R.id.tvFinishDate);
+        tvStart.setText(getStringTime(schedule.getStartHour(), schedule.getStartMinute()));
+        tvFinish.setText(getStringTime(schedule.getFinishHour(), schedule.getFinishMinute()));
+        dynamicSpinner.setSelection(schedule.getDay());
 
         btnStartDate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Calendar mcurrentTime = Calendar.getInstance();
-                int hour = mcurrentTime.get(Calendar.HOUR_OF_DAY);
-                int minute = mcurrentTime.get(Calendar.MINUTE);
                 TimePickerDialog mTimePicker;
                 mTimePicker = new TimePickerDialog(ClassActivity.this, new TimePickerDialog.OnTimeSetListener() {
                     @Override
                     public void onTimeSet(TimePicker timePicker, int selectedHour, int selectedMinute) {
-                        if (schedule == null) schedule = new Schedule();
                         schedule.setStartHour(selectedHour).setStartMinute(selectedMinute);
                         tvStart.setText(getStringTime(selectedHour, selectedMinute));
 
@@ -210,7 +289,7 @@ public class ClassActivity extends AppCompatActivity {
                             alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
                         }
                     }
-                }, hour, minute, true);//Yes 24 hour time
+                }, schedule.getStartHour(), schedule.getStartMinute(), true);//Yes 24 hour time
                 mTimePicker.setTitle("Selecione o horário");
                 mTimePicker.show();
             }
@@ -220,13 +299,10 @@ public class ClassActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Calendar mcurrentTime = Calendar.getInstance();
-                int hour = mcurrentTime.get(Calendar.HOUR_OF_DAY);
-                int minute = mcurrentTime.get(Calendar.MINUTE);
                 TimePickerDialog mTimePicker;
                 mTimePicker = new TimePickerDialog(ClassActivity.this, new TimePickerDialog.OnTimeSetListener() {
                     @Override
                     public void onTimeSet(TimePicker timePicker, int selectedHour, int selectedMinute) {
-                        if (schedule == null) schedule = new Schedule();
                         schedule.setFinishHour(selectedHour).setFinishMinute(selectedMinute);
                         tvFinish.setText(getStringTime(selectedHour, selectedMinute));
 
@@ -234,7 +310,7 @@ public class ClassActivity extends AppCompatActivity {
                             alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
                         }
                     }
-                }, hour, minute, true);//Yes 24 hour time
+                }, schedule.getFinishHour(), schedule.getFinishMinute(), true);//Yes 24 hour time
                 mTimePicker.setTitle("Selecione o horário");
                 mTimePicker.show();
             }
