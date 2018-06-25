@@ -3,66 +3,109 @@ package mobile.aulasapp.com.aulasapp.model;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 @DatabaseTable(tableName = "SCHEDULE")
 public class Schedule {
     @DatabaseField(generatedId = true, columnName = "IDSCHEDULE")
     int id;
-    @DatabaseField(columnName = "VALOR")
-    private String valor;
-    @DatabaseField(columnName = "START")
-    Date start;
-    @DatabaseField(columnName = "END")
-    Date end;
+
+    @DatabaseField(columnName = "DAY")
+    int day;
+
+    @DatabaseField(columnName = "STARTHOUR")
+    int startHour;
+    @DatabaseField(columnName = "STARTMINUTE")
+    int startMinute;
+
+    @DatabaseField(columnName = "FINISHHOUR")
+    int finishHour;
+    @DatabaseField(columnName = "FINISHMINUTE")
+    int finishMinute;
+
     @DatabaseField(foreign = true, columnName = "DISCIPLINE_IDDISCIPLINE")
     private Discipline discipline;
 
     public Schedule() {
     }
 
-    public Schedule(Date start, Date end) {
-        this.start = start;
-        this.end = end;
-    }
-
     public Discipline getDiscipline() {
         return discipline;
     }
 
-    public void setDiscipline(Discipline discipline) {
+    public Schedule setDiscipline(Discipline discipline) {
         this.discipline = discipline;
-    }
-
-    public String getValor() {
-        return valor;
-    }
-
-    public void setValor(String valor) {
-        this.valor = valor;
+        return this;
     }
 
     public int getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public Schedule setId(int id) {
         this.id = id;
+        return this;
     }
 
-    public Date getStart() {
-        return start;
+    public int getDay() {
+        return day;
     }
 
-    public void setStart(Date start) {
-        this.start = start;
+    public Schedule setDay(int day) {
+        this.day = day;
+        return this;
     }
 
-    public Date getEnd() {
-        return end;
+    public int getStartHour() {
+        return startHour;
     }
 
-    public void setEnd(Date end) {
-        this.end = end;
+    public Schedule setStartHour(int startHour) {
+        this.startHour = startHour;
+        return this;
+    }
+
+    public int getStartMinute() {
+        return startMinute;
+    }
+
+    public Schedule setStartMinute(int startMinute) {
+        this.startMinute = startMinute;
+        return this;
+    }
+
+    public int getFinishHour() {
+        return finishHour;
+    }
+
+    public Schedule setFinishHour(int finishHour) {
+        this.finishHour = finishHour;
+        return this;
+    }
+
+    public int getFinishMinute() {
+        return finishMinute;
+    }
+
+    public Schedule setFinishMinute(int finishMinute) {
+        this.finishMinute = finishMinute;
+        return this;
+    }
+
+    @Override
+    public String toString() {
+        Date startDate = new Date();
+        startDate.setHours(startHour);
+        startDate.setMinutes(startMinute);
+
+        Date finishDate = new Date();
+        finishDate.setHours(finishHour);
+        finishDate.setMinutes(finishMinute);
+        startDate.setDate(day);
+
+        SimpleDateFormat formater = new SimpleDateFormat("HH:mm");
+
+        return formater.format(startDate) + " - " + formater.format(finishDate);
     }
 }
