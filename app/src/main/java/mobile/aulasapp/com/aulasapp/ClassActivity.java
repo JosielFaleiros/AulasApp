@@ -17,6 +17,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
@@ -30,6 +31,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import mobile.aulasapp.com.aulasapp.adapter.ScheduleAdapter;
 import mobile.aulasapp.com.aulasapp.model.Discipline;
 import mobile.aulasapp.com.aulasapp.model.Schedule;
 import mobile.aulasapp.com.aulasapp.model.persistence.DatabaseHelper;
@@ -53,6 +55,7 @@ public class ClassActivity extends AppCompatActivity {
     private LayoutInflater inflater;
     private Schedule schedule;
     private TextView tvNoSchedule;
+    private Spinner dynamicSpinner;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -145,13 +148,16 @@ public class ClassActivity extends AppCompatActivity {
         // Inflate and set the layout for the dialog
         // Pass null as the parent view because its going in the
         // dialog layout
+        View alertLayout = inflater.inflate(R.layout.schedule_creation_alert, null);
+        dynamicSpinner = alertLayout.findViewById(R.id.dynamic_spinner);
+
         if (schedule == null) schedule = new Schedule();
         schedule.setStartHour(-1);
         schedule.setFinishHour(-1);
         builder.setTitle("Horário");
         builder.setCancelable(false);
 //        builder.setIcon(R.drawable.galleryalart);
-        builder.setView(inflater.inflate(R.layout.schedule_creation_alert, null))
+        builder.setView(alertLayout)
                 // Add action buttons
                 .setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
                     @Override
@@ -168,6 +174,7 @@ public class ClassActivity extends AppCompatActivity {
                         } else if (!validAlertInputs()) {
                             Toast.makeText(ClassActivity.this, "Informe data inicio e fim!", Toast.LENGTH_SHORT).show();
                         } else {
+                            schedule.setDay(dynamicSpinner.getSelectedItemPosition());
                             discipline.getSchedules().add(schedule);
                             populateSchedules();
                         }
@@ -247,7 +254,7 @@ public class ClassActivity extends AppCompatActivity {
         if (schedulesList.size() > 0) tvNoSchedule.setVisibility(View.GONE);
         else tvNoSchedule.setVisibility(View.VISIBLE);
 
-        lvSchedules.setAdapter(new ArrayAdapter<Schedule>(this, android.R.layout.simple_list_item_1, schedulesList));
+        lvSchedules.setAdapter(new ScheduleAdapter(this, schedulesList));
     }
 
     private boolean validAlertInputs() {

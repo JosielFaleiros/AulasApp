@@ -105,8 +105,7 @@ public class Schedule {
         startDate.setDate(day);
 
         SimpleDateFormat formater = new SimpleDateFormat("HH:mm");
-        SimpleDateFormat formatDay = new SimpleDateFormat("dd");
 
-        return formatDay.format(startDate) + " " + formater.format(startDate) + " - " + formater.format(finishDate);
+        return formater.format(startDate) + " - " + formater.format(finishDate);
     }
 }
